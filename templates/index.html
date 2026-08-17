@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header mb-4">
+    <h1 class="display-6">Hello, {% if name %}{{ name }}{% else %}Stranger{% endif %}!</h1>
+</div>
+<hr class="mb-4">
+<form method="POST">
+    <div class="mb-3">
+        <label for="name" class="form-label fw-bold">What is your name?</label>
+        <input type="text" class="form-control" id="name" name="name" style="max-width: 100%;">
+    </div>
+    <button type="submit" class="btn btn-outline-secondary">Submit</button>
+</form>
+{% endblock %}
