@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="d-flex justify-content-center">
+    <div class="card p-4" style="min-width: 320px; max-width: 400px; width: 100%;">
+        <h4 class="mb-3">Login:</h4>
+
+        <form method="POST">
+            <div class="mb-3">
+                <input type="text" class="form-control form-control-sm" name="usuario"
+                       placeholder="Usuário ou e-mail">
+            </div>
+            <div class="mb-3">
+                <input type="password" class="form-control form-control-sm" name="senha"
+                       placeholder="Informe a sua senha">
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm px-4">Enviar</button>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
