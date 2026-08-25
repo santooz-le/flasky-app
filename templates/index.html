@@ -1,44 +1,42 @@
 {% extends "base.html" %}
 
 {% block content %}
+<div style="margin-bottom: 20px;">
+    <h2 style="font-weight: 500; font-size: 30px; margin-top: 20px; margin-bottom: 10px;">
+        {% if nome %}
+            Olá, {{ nome }} {{ sobrenome }}!
+        {% else %}
+            Olá, Estranho!
+        {% endif %}
+    </h2>
+</div>
 
-<h2 class="mb-3" style="font-weight: 400;">
-    {% if nome %}
-        Olá, {{ nome }} {{ sobrenome }}!
-    {% else %}
-        Olá, Estranho!
-    {% endif %}
-</h2>
+<p style="font-size: 18px; margin-bottom: 10px;">A sua Insituição de ensino é {{ instituicao if instituicao else 'None' }}</p>
+<p style="font-size: 18px; margin-bottom: 30px;">Está cursando a disciplina de {{ disciplina if disciplina else '' }}</p>
 
-<!-- Fontes um pouco maiores para combinar com o print -->
-<p class="mb-2 fs-5">A sua Insituição de ensino é {{ instituicao if instituicao else 'None' }}</p>
-<p class="mb-5 fs-5">Está cursando a disciplina de {{ disciplina if disciplina else '' }}</p>
+<p style="margin-bottom: 5px; font-size: 14px;">O IP do computador remoto é: {{ ip_remoto if ip_remoto else 'None' }}</p>
+<p style="margin-bottom: 20px; font-size: 14px;">O host da aplicação é: {{ host if host else 'None' }}</p>
 
-<!-- Sem cores extras, texto padrão -->
-<p class="mb-1">O IP do computador remoto é: {{ ip_remoto if ip_remoto else 'None' }}</p>
-<p class="mb-4">O host da aplicação é: {{ host if host else 'None' }}</p>
-
-<hr class="mb-4">
+<hr>
 
 <form method="POST">
-    <div class="mb-4">
-        <label for="nome" class="form-label fw-bold" style="font-size: 0.9rem;">Informe o seu nome</label>
+    <div style="margin-bottom: 15px;">
+        <label for="nome" style="font-weight: 700; font-size: 14px; margin-bottom: 5px; display: inline-block;">Informe o seu nome</label>
         <input type="text" class="form-control" id="nome" name="nome" value="{{ nome if nome else '' }}">
     </div>
 
-    <div class="mb-4">
-        <label for="sobrenome" class="form-label fw-bold" style="font-size: 0.9rem;">Informe o seu sobrenome:</label>
+    <div style="margin-bottom: 15px;">
+        <label for="sobrenome" style="font-weight: 700; font-size: 14px; margin-bottom: 5px; display: inline-block;">Informe o seu sobrenome:</label>
         <input type="text" class="form-control" id="sobrenome" name="sobrenome" value="{{ sobrenome if sobrenome else '' }}">
     </div>
 
-    <div class="mb-4">
-        <label for="instituicao" class="form-label fw-bold" style="font-size: 0.9rem;">Informe a sua Insituição de ensino:</label>
+    <div style="margin-bottom: 15px;">
+        <label for="instituicao" style="font-weight: 700; font-size: 14px; margin-bottom: 5px; display: inline-block;">Informe a sua Insituição de ensino:</label>
         <input type="text" class="form-control" id="instituicao" name="instituicao" value="{{ instituicao if instituicao else '' }}">
     </div>
 
-    <div class="mb-4">
-        <label for="disciplina" class="form-label fw-bold" style="font-size: 0.9rem;">Informe a sua disciplina:</label>
-        <!-- Removido o max-width para o campo ocupar tudo como no print -->
+    <div style="margin-bottom: 15px;">
+        <label for="disciplina" style="font-weight: 700; font-size: 14px; margin-bottom: 5px; display: inline-block;">Informe a sua disciplina:</label>
         <select class="form-select" id="disciplina" name="disciplina">
             {% for d in disciplinas %}
                 <option value="{{ d }}" {% if disciplina == d %}selected{% endif %}>{{ d }}</option>
@@ -46,7 +44,6 @@
         </select>
     </div>
 
-    <button type="submit" class="btn btn-outline-secondary">Submit</button>
+    <button type="submit" style="border: 1px solid #ccc; background: #fff; padding: 6px 12px; border-radius: 4px; font-size: 14px; margin-top: 10px;">Submit</button>
 </form>
-
 {% endblock %}
