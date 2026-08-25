@@ -9,6 +9,12 @@
     <style>
         /* Simulando o visual exato do Bootstrap 3 (Flask-Bootstrap) */
         body { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: #333; }
+        
+        /* Forçando a largura máxima do container para centralizar mais o corpo em telas grandes, igual ao Bootstrap 3 */
+        @media (min-width: 768px) { .container { max-width: 750px !important; } }
+        @media (min-width: 992px) { .container { max-width: 970px !important; } }
+        @media (min-width: 1200px) { .container { max-width: 1170px !important; } }
+
         .navbar-dark { background-color: #222 !important; border-color: #080808; }
         .navbar-brand { color: #999 !important; font-size: 18px; padding-left: 0; }
         .navbar-brand strong { color: #fff; font-weight: bold; }
