@@ -2,8 +2,7 @@
 
 {% block content %}
 
-<!-- Saudação -->
-<h2>
+<h2 class="mb-3" style="font-weight: 400;">
     {% if nome %}
         Olá, {{ nome }} {{ sobrenome }}!
     {% else %}
@@ -11,50 +10,43 @@
     {% endif %}
 </h2>
 
-<p>
-    <strong>A sua Insituição de ensino é</strong>
-    <span style="color: #e67e22;">{{ instituicao if instituicao else 'None' }}</span>
-</p>
-<p>
-    <strong>Está cursando a disciplina de</strong>
-    <span>{{ disciplina if disciplina else '' }}</span>
-</p>
+<!-- Fontes um pouco maiores para combinar com o print -->
+<p class="mb-2 fs-5">A sua Insituição de ensino é {{ instituicao if instituicao else 'None' }}</p>
+<p class="mb-5 fs-5">Está cursando a disciplina de {{ disciplina if disciplina else '' }}</p>
 
-<p style="color: #e67e22; font-size: 0.85rem;">O IP do computador remoto é: {{ ip_remoto if ip_remoto else 'None' }}</p>
-<p style="color: #e67e22; font-size: 0.85rem;">O host da aplicação é: {{ host if host else 'None' }}</p>
+<!-- Sem cores extras, texto padrão -->
+<p class="mb-1">O IP do computador remoto é: {{ ip_remoto if ip_remoto else 'None' }}</p>
+<p class="mb-4">O host da aplicação é: {{ host if host else 'None' }}</p>
 
-<hr>
+<hr class="mb-4">
 
-<!-- Formulário -->
 <form method="POST">
-    <div class="mb-3">
-        <label for="nome" class="form-label fw-bold" style="font-size:0.85rem;">Informe o seu nome</label>
-        <input type="text" class="form-control form-control-sm" id="nome" name="nome"
-               value="{{ nome if nome else '' }}">
+    <div class="mb-4">
+        <label for="nome" class="form-label fw-bold" style="font-size: 0.9rem;">Informe o seu nome</label>
+        <input type="text" class="form-control" id="nome" name="nome" value="{{ nome if nome else '' }}">
     </div>
 
-    <div class="mb-3">
-        <label for="sobrenome" class="form-label fw-bold" style="font-size:0.85rem;">Informe o seu sobrenome:</label>
-        <input type="text" class="form-control form-control-sm" id="sobrenome" name="sobrenome"
-               value="{{ sobrenome if sobrenome else '' }}">
+    <div class="mb-4">
+        <label for="sobrenome" class="form-label fw-bold" style="font-size: 0.9rem;">Informe o seu sobrenome:</label>
+        <input type="text" class="form-control" id="sobrenome" name="sobrenome" value="{{ sobrenome if sobrenome else '' }}">
     </div>
 
-    <div class="mb-3">
-        <label for="instituicao" class="form-label fw-bold" style="font-size:0.85rem;">Informe a sua insituição de ensino:</label>
-        <input type="text" class="form-control form-control-sm" id="instituicao" name="instituicao"
-               value="{{ instituicao if instituicao else '' }}">
+    <div class="mb-4">
+        <label for="instituicao" class="form-label fw-bold" style="font-size: 0.9rem;">Informe a sua Insituição de ensino:</label>
+        <input type="text" class="form-control" id="instituicao" name="instituicao" value="{{ instituicao if instituicao else '' }}">
     </div>
 
-    <div class="mb-3">
-        <label for="disciplina" class="form-label fw-bold" style="font-size:0.85rem;">Informe a sua disciplina:</label>
-        <select class="form-select form-select-sm" id="disciplina" name="disciplina" style="max-width: 200px;">
+    <div class="mb-4">
+        <label for="disciplina" class="form-label fw-bold" style="font-size: 0.9rem;">Informe a sua disciplina:</label>
+        <!-- Removido o max-width para o campo ocupar tudo como no print -->
+        <select class="form-select" id="disciplina" name="disciplina">
             {% for d in disciplinas %}
                 <option value="{{ d }}" {% if disciplina == d %}selected{% endif %}>{{ d }}</option>
             {% endfor %}
         </select>
     </div>
 
-    <button type="submit" class="btn btn-outline-secondary btn-sm">Submit</button>
+    <button type="submit" class="btn btn-outline-secondary">Submit</button>
 </form>
 
 {% endblock %}

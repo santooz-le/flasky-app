@@ -1,23 +1,21 @@
 {% extends "base.html" %}
 
 {% block content %}
-
-<div class="d-flex justify-content-center">
-    <div class="card p-4" style="min-width: 320px; max-width: 400px; width: 100%;">
-        <h4 class="mb-3">Login:</h4>
-
+<!-- Centralizando o card de login igual ao print, porém respeitando a margem global -->
+<div class="d-flex justify-content-center mt-5 mb-5">
+    <!-- Removido o shadow-sm para ficar com a borda sutil igual ao print -->
+    <div class="card p-4" style="width: 100%; max-width: 400px; border-radius: 4px;">
+        <h3 class="mb-4" style="font-weight: 400;">Login:</h3>
+        
         <form method="POST">
             <div class="mb-3">
-                <input type="text" class="form-control form-control-sm" name="usuario"
-                       placeholder="Usuário ou e-mail">
+                <input type="text" class="form-control" name="usuario" placeholder="Usuário ou e-mail">
             </div>
-            <div class="mb-3">
-                <input type="password" class="form-control form-control-sm" name="senha"
-                       placeholder="Informe a sua senha">
+            <div class="mb-4">
+                <input type="password" class="form-control" name="senha" placeholder="Informe a sua senha">
             </div>
-            <button type="submit" class="btn btn-primary btn-sm px-4">Enviar</button>
+            <button type="submit" class="btn btn-primary px-4">Enviar</button>
         </form>
     </div>
 </div>
-
 {% endblock %}
