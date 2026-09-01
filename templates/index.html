@@ -1,15 +1,33 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="page-header mb-4">
-    <h1 class="display-6">Hello, {% if name %}{{ name }}{% else %}Stranger{% endif %}!</h1>
-</div>
-<hr class="mb-4">
+
+<h1 style="font-weight: 400; margin-top: 20px; margin-bottom: 5px;">
+    {% if name %}
+        Hello, {{ name }}!
+    {% else %}
+        Hello, Stranger!
+    {% endif %}
+</h1>
+
+{% if name %}
+<p style="font-size: 14px;">
+    Pleased to <a href="/" style="color: #337ab7; text-decoration: none;">meet you</a>!
+</p>
+{% endif %}
+
+<hr>
+
 <form method="POST">
-    <div class="mb-3">
-        <label for="name" class="form-label fw-bold">What is your name?</label>
-        <input type="text" class="form-control" id="name" name="name" style="max-width: 100%;">
+    <div style="margin-bottom: 10px;">
+        <label style="font-weight: 700; font-size: 14px; display: block; margin-bottom: 5px;">
+            What is your name?
+        </label>
+        <input type="text" class="form-control" name="name" value="{{ name if name else '' }}">
     </div>
-    <button type="submit" class="btn btn-outline-secondary">Submit</button>
+    <button type="submit" style="border: 1px solid #ccc; background: #fff; padding: 6px 12px; border-radius: 4px; font-size: 14px;">
+        Submit
+    </button>
 </form>
+
 {% endblock %}
