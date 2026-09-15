@@ -14,6 +14,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
+ROLES = ['Administrator', 'Moderator', 'User']
+
 
 class Role(db.Model):
     __tablename__ = 'roles'
@@ -35,42 +37,62 @@ class User(db.Model):
         return '<User %r>' % self.username
 
 
+def get_or_create_role(name):
+    """Retorna a Role existente ou cria uma nova."""
+    role = Role.query.filter_by(name=name).first()
+    if role is None:
+        role = Role(name=name)
+        db.session.add(role)
+        db.session.commit()
+    return role
+
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
+        role_name = request.form.get('role', 'User')
+
         if name:
             session['name'] = name
+            session['role'] = role_name
+
             user = User.query.filter_by(username=name).first()
+            role = get_or_create_role(role_name)
+
             if user is None:
-                # Se for novo, associa à função User
-                user_role = Role.query.filter_by(name='User').first()
-                if user_role is None:
-                    user_role = Role(name='User')
-                    db.session.add(user_role)
-                    db.session.commit()
-                
-                user = User(username=name, role=user_role)
+                user = User(username=name, role=role)
                 db.session.add(user)
-                db.session.commit()
                 session['known'] = False
             else:
+                user.role = role
                 session['known'] = True
+
+            db.session.commit()
+
         return redirect(url_for('index'))
 
     name = session.get('name')
     known = session.get('known', False)
+    selected_role = session.get('role', 'User')
+
     users = User.query.all()
-    return render_template('index.html', name=name, known=known, users=users)
+    user_count = User.query.count()
+
+    return render_template(
+        'index.html',
+        name=name,
+        known=known,
+        users=users,
+        user_count=user_count,
+        roles=ROLES,
+        selected_role=selected_role
+    )
 
 
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-        # Garante que as funções Administrator e User existam
-        if Role.query.filter_by(name='Administrator').first() is None:
-            db.session.add(Role(name='Administrator'))
-        if Role.query.filter_by(name='User').first() is None:
-            db.session.add(Role(name='User'))
-        db.session.commit()
+        for r in ROLES:
+            get_or_create_role(r)
     app.run(debug=True)
