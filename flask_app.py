@@ -19,7 +19,7 @@ db = SQLAlchemy(app)
 SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY', 'COLE_SUA_CHAVE_AQUI')
 
 # E-mail verificado no SendGrid (Single Sender)
-EMAIL_REMETENTE = 'leandro.k@aluno.ifsp.edu.br'
+EMAIL_REMETENTE = 'leandrozard509@gmail.com'
 
 EMAIL_DESTINATARIOS = [
     'flaskaulasweb@zohomail.com',
