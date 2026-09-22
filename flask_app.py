@@ -14,9 +14,12 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 # ==============================
-# Configuração do Resend
+# Configuração do SendGrid
 # ==============================
-RESEND_API_KEY = os.environ.get('RESEND_API_KEY', 'COLE_SUA_CHAVE_AQUI')
+SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY', 'COLE_SUA_CHAVE_AQUI')
+
+# E-mail verificado no SendGrid (Single Sender)
+EMAIL_REMETENTE = 'leandro.k@aluno.ifsp.edu.br'
 
 EMAIL_DESTINATARIOS = [
     'flaskaulasweb@zohomail.com',
@@ -43,29 +46,41 @@ class User(db.Model):
 # Função de envio de e-mail
 # ==============================
 def enviar_email(nome_usuario):
-    """Envia e-mail via Resend API para o professor e para o aluno."""
+    """Envia e-mail via SendGrid API para o professor e para o aluno."""
     try:
         response = http_requests.post(
-            'https://api.resend.com/emails',
+            'https://api.sendgrid.com/v3/mail/send',
             headers={
-                'Authorization': f'Bearer {RESEND_API_KEY}',
+                'Authorization': f'Bearer {SENDGRID_API_KEY}',
                 'Content-Type': 'application/json'
             },
             json={
-                'from': 'Flasky App <onboarding@resend.dev>',
-                'to': EMAIL_DESTINATARIOS,
+                'personalizations': [
+                    {
+                        'to': [{'email': email} for email in EMAIL_DESTINATARIOS]
+                    }
+                ],
+                'from': {
+                    'email': EMAIL_REMETENTE,
+                    'name': 'Flasky App'
+                },
                 'subject': f'Novo usuário cadastrado - {nome_usuario}',
-                'html': f'''
-                    <h2>Novo usuário cadastrado no Flasky</h2>
-                    <p><strong>Prontuário:</strong> {PRONTUARIO}</p>
-                    <p><strong>Nome do aluno:</strong> {NOME_ALUNO}</p>
-                    <hr>
-                    <p><strong>Usuário cadastrado:</strong> {nome_usuario}</p>
-                '''
+                'content': [
+                    {
+                        'type': 'text/html',
+                        'value': f'''
+                            <h2>Novo usuário cadastrado no Flasky</h2>
+                            <p><strong>Prontuário:</strong> {PRONTUARIO}</p>
+                            <p><strong>Nome do aluno:</strong> {NOME_ALUNO}</p>
+                            <hr>
+                            <p><strong>Usuário cadastrado:</strong> {nome_usuario}</p>
+                        '''
+                    }
+                ]
             }
         )
         print(f'E-mail enviado! Status: {response.status_code} - {response.text}')
-        return response.status_code == 200
+        return response.status_code == 202
     except Exception as e:
         print(f'Erro ao enviar e-mail: {e}')
         return False
