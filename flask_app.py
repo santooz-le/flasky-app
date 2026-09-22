@@ -1,7 +1,7 @@
 import os
+import requests as http_requests
 from flask import Flask, render_template, session, redirect, url_for, request
 from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -12,87 +12,92 @@ app.config['SQLALCHEMY_DATABASE_URI'] = \
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
-migrate = Migrate(app, db)
 
-ROLES = ['Administrator', 'Moderator', 'User']
+# ==============================
+# Configuração do Resend
+# ==============================
+RESEND_API_KEY = os.environ.get('RESEND_API_KEY', 'COLE_SUA_CHAVE_AQUI')
+
+EMAIL_DESTINATARIOS = [
+    'flaskaulasweb@zohomail.com',
+    'leandro.k@aluno.ifsp.edu.br'
+]
+
+PRONTUARIO = 'PT3037649'
+NOME_ALUNO = 'Leandro Kauã dos Santos'
 
 
-class Role(db.Model):
-    __tablename__ = 'roles'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64), unique=True)
-    users = db.relationship('User', backref='role', lazy='dynamic')
-
-    def __repr__(self):
-        return '<Role %r>' % self.name
-
-
+# ==============================
+# Modelo
+# ==============================
 class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, index=True)
-    role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
 
     def __repr__(self):
         return '<User %r>' % self.username
 
 
-def get_or_create_role(name):
-    """Retorna a Role existente ou cria uma nova."""
-    role = Role.query.filter_by(name=name).first()
-    if role is None:
-        role = Role(name=name)
-        db.session.add(role)
-        db.session.commit()
-    return role
+# ==============================
+# Função de envio de e-mail
+# ==============================
+def enviar_email(nome_usuario):
+    """Envia e-mail via Resend API para o professor e para o aluno."""
+    try:
+        response = http_requests.post(
+            'https://api.resend.com/emails',
+            headers={
+                'Authorization': f'Bearer {RESEND_API_KEY}',
+                'Content-Type': 'application/json'
+            },
+            json={
+                'from': 'Flasky App <onboarding@resend.dev>',
+                'to': EMAIL_DESTINATARIOS,
+                'subject': f'Novo usuário cadastrado - {nome_usuario}',
+                'html': f'''
+                    <h2>Novo usuário cadastrado no Flasky</h2>
+                    <p><strong>Prontuário:</strong> {PRONTUARIO}</p>
+                    <p><strong>Nome do aluno:</strong> {NOME_ALUNO}</p>
+                    <hr>
+                    <p><strong>Usuário cadastrado:</strong> {nome_usuario}</p>
+                '''
+            }
+        )
+        print(f'E-mail enviado! Status: {response.status_code} - {response.text}')
+        return response.status_code == 200
+    except Exception as e:
+        print(f'Erro ao enviar e-mail: {e}')
+        return False
 
 
+# ==============================
+# Rota principal
+# ==============================
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
-        role_name = request.form.get('role', 'User')
-
         if name:
             session['name'] = name
-            session['role'] = role_name
-
             user = User.query.filter_by(username=name).first()
-            role = get_or_create_role(role_name)
-
             if user is None:
-                user = User(username=name, role=role)
+                # Novo usuário — salva e envia e-mail
+                user = User(username=name)
                 db.session.add(user)
+                db.session.commit()
                 session['known'] = False
+                enviar_email(name)
             else:
-                user.role = role
                 session['known'] = True
-
-            db.session.commit()
-
         return redirect(url_for('index'))
 
     name = session.get('name')
     known = session.get('known', False)
-    selected_role = session.get('role', 'User')
-
-    users = User.query.all()
-    user_count = User.query.count()
-
-    return render_template(
-        'index.html',
-        name=name,
-        known=known,
-        users=users,
-        user_count=user_count,
-        roles=ROLES,
-        selected_role=selected_role
-    )
+    return render_template('index.html', name=name, known=known)
 
 
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-        for r in ROLES:
-            get_or_create_role(r)
     app.run(debug=True)
