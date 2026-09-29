@@ -10,7 +10,7 @@
     {% endif %}
 </h1>
 
-<p style="font-size: 14px; margin-bottom: 5px; color: #337ab7;">
+<p style="font-size: 14px; margin-bottom: 5px; color: #333;">
     {% if name and known %}
         Feliz em vê-lo novamente!
     {% else %}
@@ -18,9 +18,9 @@
     {% endif %}
 </p>
 
-{% if email_sent %}
+{% if name and not known %}
 <p style="font-size: 14px; margin-bottom: 5px; color: #333;">
-    E-mail enviado para o <strong>Administrador do sistema</strong>, notificando o cadastro de um <strong>novo usuário</strong>.
+    E-mail enviado para o <strong>Administrador do sistema</strong>, notificando o cadastro de um novo usuário.
 </p>
 {% endif %}
 
@@ -36,7 +36,7 @@
     <div style="margin-bottom: 10px; font-size: 14px;">
         <label>
             <input type="checkbox" name="send_email" style="margin-right: 5px;">
-            Deseja enviar e-mail para <a href="mailto:flaskaulasweb@zohomail.com" style="color: #337ab7;">flaskaulasweb@zohomail.com</a>?
+            Deseja enviar e-mail para flaskaulasweb@zohomail.com?
         </label>
     </div>
     <button type="submit" style="border: 1px solid #ccc; background: #fff; color: #333; padding: 6px 12px; border-radius: 4px; font-size: 14px;">
@@ -58,13 +58,13 @@
     <tbody>
         {% for u in admins %}
         <tr style="border-bottom: 1px solid #eee;">
-            <td style="padding: 8px;"><a href="#" style="color: #337ab7; text-decoration: none;">{{ u.username }}</a></td>
+            <td style="padding: 8px; color: #333;">{{ u.username }}</td>
             <td style="padding: 8px;">Administrator</td>
         </tr>
         {% endfor %}
         {% for u in users %}
         <tr style="border-bottom: 1px solid #eee;">
-            <td style="padding: 8px;"><a href="#" style="color: #337ab7; text-decoration: none;">{{ u.username }}</a></td>
+            <td style="padding: 8px; color: #333;">{{ u.username }}</td>
             <td style="padding: 8px;">User</td>
         </tr>
         {% endfor %}
