@@ -17,34 +17,48 @@ db = SQLAlchemy(app)
 # Configuração do SendGrid
 # ==============================
 SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY', 'COLE_SUA_CHAVE_AQUI')
-
-# E-mail verificado no SendGrid (Single Sender)
 EMAIL_REMETENTE = 'leandrozard509@gmail.com'
-
-EMAIL_DESTINATARIOS = [
-    'flaskaulasweb@zohomail.com',
-    'leandro.k@aluno.ifsp.edu.br'
-]
-
+EMAIL_PROFESSOR = 'flaskaulasweb@zohomail.com'
+EMAIL_ALUNO = 'leandro.k@aluno.ifsp.edu.br'
 PRONTUARIO = 'PT3037649'
 NOME_ALUNO = 'Leandro Kauã dos Santos'
 
 
 # ==============================
-# Modelo
+# Modelos
 # ==============================
+class Role(db.Model):
+    __tablename__ = 'roles'
+    id    = db.Column(db.Integer, primary_key=True)
+    name  = db.Column(db.String(64), unique=True)
+    users = db.relationship('User', backref='role', lazy='dynamic')
+
+    def __repr__(self):
+        return '<Role %r>' % self.name
+
+
 class User(db.Model):
     __tablename__ = 'users'
-    id = db.Column(db.Integer, primary_key=True)
+    id       = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, index=True)
+    role_id  = db.Column(db.Integer, db.ForeignKey('roles.id'))
 
     def __repr__(self):
         return '<User %r>' % self.username
 
 
 # ==============================
-# Função de envio de e-mail
+# Helpers
 # ==============================
+def get_or_create_role(name):
+    role = Role.query.filter_by(name=name).first()
+    if role is None:
+        role = Role(name=name)
+        db.session.add(role)
+        db.session.commit()
+    return role
+
+
 def enviar_email(nome_usuario):
     """Envia e-mail via SendGrid API para o professor e para o aluno."""
     try:
@@ -57,7 +71,10 @@ def enviar_email(nome_usuario):
             json={
                 'personalizations': [
                     {
-                        'to': [{'email': email} for email in EMAIL_DESTINATARIOS]
+                        'to': [
+                            {'email': EMAIL_PROFESSOR},
+                            {'email': EMAIL_ALUNO}
+                        ]
                     }
                 ],
                 'from': {
@@ -93,26 +110,74 @@ def enviar_email(nome_usuario):
 def index():
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
+        send_email = request.form.get('send_email') == 'on'
+
         if name:
             session['name'] = name
             user = User.query.filter_by(username=name).first()
             if user is None:
-                # Novo usuário — salva e envia e-mail
-                user = User(username=name)
+                role = get_or_create_role('User')
+                user = User(username=name, role_id=role.id)
                 db.session.add(user)
                 db.session.commit()
                 session['known'] = False
-                enviar_email(name)
+                if send_email:
+                    session['email_sent'] = enviar_email(name)
+                else:
+                    session['email_sent'] = False
             else:
                 session['known'] = True
+                session['email_sent'] = False
+
         return redirect(url_for('index'))
 
-    name = session.get('name')
-    known = session.get('known', False)
-    return render_template('index.html', name=name, known=known)
+    name       = session.get('name')
+    known      = session.get('known', False)
+    email_sent = session.pop('email_sent', False)
+
+    # Usuários agrupados: Administrators primeiro, depois Users
+    admin_role = Role.query.filter_by(name='Administrator').first()
+    user_role  = Role.query.filter_by(name='User').first()
+    admins = admin_role.users.order_by(User.username).all() if admin_role else []
+    users  = user_role.users.order_by(User.username).all()  if user_role  else []
+
+    return render_template('index.html',
+                           name=name,
+                           known=known,
+                           email_sent=email_sent,
+                           admins=admins,
+                           users=users)
+
+
+# ==============================
+# Inicialização segura do banco
+# ==============================
+def init_db():
+    """Cria tabelas e migra colunas faltantes sem apagar dados existentes."""
+    db.create_all()
+
+    # Adiciona role_id em users se a coluna ainda não existir (migração segura)
+    with db.engine.connect() as conn:
+        try:
+            conn.execute(db.text('ALTER TABLE users ADD COLUMN role_id INTEGER REFERENCES roles(id)'))
+            conn.commit()
+        except Exception:
+            pass  # coluna já existe
+
+    # Garante que os papéis padrão existam
+    get_or_create_role('Administrator')
+    default_role = get_or_create_role('User')
+
+    # Atribui papel 'User' a quem ainda não tem papel
+    sem_papel = User.query.filter_by(role_id=None).all()
+    for u in sem_papel:
+        u.role_id = default_role.id
+    db.session.commit()
+
+
+with app.app_context():
+    init_db()
 
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     app.run(debug=True)
