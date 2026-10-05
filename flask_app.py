@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 import requests as http_requests
 from flask import Flask, render_template, session, redirect, url_for, request
 from flask_sqlalchemy import SQLAlchemy
@@ -47,6 +48,19 @@ class User(db.Model):
         return '<User %r>' % self.username
 
 
+class EmailLog(db.Model):
+    __tablename__ = 'email_logs'
+    id        = db.Column(db.Integer, primary_key=True)
+    de        = db.Column(db.String(128))
+    para      = db.Column(db.String(256))
+    assunto   = db.Column(db.String(256))
+    texto     = db.Column(db.String(512))
+    data_hora = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return '<EmailLog %r>' % self.assunto
+
+
 # ==============================
 # Helpers
 # ==============================
@@ -59,8 +73,16 @@ def get_or_create_role(name):
     return role
 
 
-def enviar_email(nome_usuario):
-    """Envia e-mail via SendGrid API para o professor e para o aluno."""
+def enviar_email(nome_usuario, enviar_para_professor=False):
+    """Envia e-mail via SendGrid API e salva no banco de dados."""
+    destinatarios = [EMAIL_ALUNO]
+    if enviar_para_professor:
+        destinatarios.append(EMAIL_PROFESSOR)
+
+    assunto = '[Flasky] Novo usuário'
+    texto = f'Novo usuário cadastrado: {nome_usuario}'
+    para_str = ', '.join(f"'{e}'" for e in destinatarios)
+
     try:
         response = http_requests.post(
             'https://api.sendgrid.com/v3/mail/send',
@@ -71,17 +93,14 @@ def enviar_email(nome_usuario):
             json={
                 'personalizations': [
                     {
-                        'to': [
-                            {'email': EMAIL_PROFESSOR},
-                            {'email': EMAIL_ALUNO}
-                        ]
+                        'to': [{'email': email} for email in destinatarios]
                     }
                 ],
                 'from': {
                     'email': EMAIL_REMETENTE,
                     'name': 'Flasky App'
                 },
-                'subject': f'Novo usuário cadastrado - {nome_usuario}',
+                'subject': assunto,
                 'content': [
                     {
                         'type': 'text/html',
@@ -97,6 +116,18 @@ def enviar_email(nome_usuario):
             }
         )
         print(f'E-mail enviado! Status: {response.status_code} - {response.text}')
+
+        # Salvar no banco de dados
+        log = EmailLog(
+            de=nome_usuario,
+            para=para_str,
+            assunto=assunto,
+            texto=texto,
+            data_hora=datetime.utcnow()
+        )
+        db.session.add(log)
+        db.session.commit()
+
         return response.status_code == 202
     except Exception as e:
         print(f'Erro ao enviar e-mail: {e}')
@@ -121,10 +152,7 @@ def index():
                 db.session.add(user)
                 db.session.commit()
                 session['known'] = False
-                if send_email:
-                    session['email_sent'] = enviar_email(name)
-                else:
-                    session['email_sent'] = False
+                session['email_sent'] = enviar_email(name, enviar_para_professor=send_email)
             else:
                 session['known'] = True
                 session['email_sent'] = False
@@ -147,6 +175,15 @@ def index():
                            email_sent=email_sent,
                            admins=admins,
                            users=users)
+
+
+# ==============================
+# Rota de e-mails enviados
+# ==============================
+@app.route('/emailsEnviados')
+def emails_enviados():
+    emails = EmailLog.query.order_by(EmailLog.data_hora.asc()).all()
+    return render_template('emails_enviados.html', emails=emails)
 
 
 # ==============================

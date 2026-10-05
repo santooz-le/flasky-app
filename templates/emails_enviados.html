@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1 style="font-weight: 400; margin-top: 20px; margin-bottom: 5px;">E-mails enviados</h1>
+<p style="font-size: 14px; margin-bottom: 20px; color: #333;">
+    Relação de e-mails enviados para o administrador do sistema, notificando o cadastro de novos usuários.
+</p>
+
+<table style="width: 100%; font-size: 14px; border-collapse: collapse;">
+    <thead>
+        <tr style="border-bottom: 2px solid #ddd;">
+            <th style="text-align: left; padding: 8px; font-weight: 700;">De</th>
+            <th style="text-align: left; padding: 8px; font-weight: 700;">Para</th>
+            <th style="text-align: left; padding: 8px; font-weight: 700;">Assunto</th>
+            <th style="text-align: left; padding: 8px; font-weight: 700;">Texto</th>
+            <th style="text-align: left; padding: 8px; font-weight: 700;">Data/Hora</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for e in emails %}
+        <tr style="border-bottom: 1px solid #eee;">
+            <td style="padding: 8px;">{{ e.de }}</td>
+            <td style="padding: 8px;">{{ e.para }}</td>
+            <td style="padding: 8px;">{{ e.assunto }}</td>
+            <td style="padding: 8px;">{{ e.texto }}</td>
+            <td style="padding: 8px;">{{ e.data_hora.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}
