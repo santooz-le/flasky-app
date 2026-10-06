@@ -81,7 +81,8 @@ def enviar_email(nome_usuario, enviar_para_professor=False):
 
     assunto = '[Flasky] Novo usuário'
     texto = f'Novo usuário cadastrado: {nome_usuario}'
-    para_str = ', '.join(f"'{e}'" for e in destinatarios)
+    para_str = "',<br>'".join(destinatarios)
+    para_str = f"'{para_str}'"
 
     try:
         response = http_requests.post(
