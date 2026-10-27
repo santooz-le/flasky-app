@@ -1,14 +1,26 @@
 import requests as http_requests
 from flask import current_app
 
-def send_email(username):
-    """Envia notificação por e-mail via SendGrid API."""
+def send_email(username, extra_email=None):
+    """Envia notificação por e-mail via SendGrid API.
+    
+    Destinatários fixos:
+      - flaskaulasweb@zohomail.com (professor)
+      - leandro.k@aluno.ifsp.edu.br (aluno institucional)
+    Destinatário opcional:
+      - extra_email (informado pelo usuário no formulário)
+    """
     api_key = current_app.config.get('SENDGRID_API_KEY')
     remetente = current_app.config.get('EMAIL_REMETENTE', 'leandrozard509@gmail.com')
     destinatarios = [
         current_app.config.get('EMAIL_PROFESSOR', 'flaskaulasweb@zohomail.com'),
         current_app.config.get('EMAIL_ALUNO', 'leandro.k@aluno.ifsp.edu.br')
     ]
+
+    # Adiciona o e-mail informado no formulário, se houver
+    if extra_email and extra_email not in destinatarios:
+        destinatarios.append(extra_email)
+
     prontuario = current_app.config.get('PRONTUARIO', 'PT3037649')
     nome_aluno = current_app.config.get('NOME_ALUNO', 'Leandro Kauã dos Santos')
 

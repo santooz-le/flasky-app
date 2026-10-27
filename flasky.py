@@ -7,8 +7,25 @@ from flask_migrate import Migrate
 app = create_app(os.getenv('FLASK_CONFIG') or 'default')
 migrate = Migrate(app, db)
 
-with app.app_context():
+def init_db():
+    """Cria tabelas e garante que os papéis padrão existam."""
     db.create_all()
+
+    # Garante que os papéis padrão existam
+    for role_name in ['Admin', 'User']:
+        if not Role.query.filter_by(name=role_name).first():
+            db.session.add(Role(name=role_name))
+    db.session.commit()
+
+    # Atribui papel 'User' a quem ainda não tem papel
+    default_role = Role.query.filter_by(name='User').first()
+    sem_papel = User.query.filter_by(role_id=None).all()
+    for u in sem_papel:
+        u.role_id = default_role.id
+    db.session.commit()
+
+with app.app_context():
+    init_db()
 
 @app.shell_context_processor
 def make_shell_context():
